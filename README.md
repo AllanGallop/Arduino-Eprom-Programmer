@@ -19,3 +19,6 @@
     * Linux ```eg: /dev/ttyACM0```
 3. Select mode
 4. Win!
+
+<img src="https://www.m0vte.co.uk/blog/wp-content/uploads/2020/02/Eprom_27c010_test.png" height="350">
+<img src="https://www.m0vte.co.uk/blog/wp-content/uploads/2020/02/Eprom_27c010.png" height="350">
