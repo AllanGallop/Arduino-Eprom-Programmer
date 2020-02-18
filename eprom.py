@@ -1,10 +1,5 @@
-
 import serial,time #You need the pyserial library
 import struct      #For packing data into bytes
-
-ser = serial.Serial('/dev/ttyACM0', 250000, timeout=0)
-#time.sleep(10);#my arduino bugs if data is written to the port after opening it
-romsize=1024
 
 print("      ________    _________    _________    _________    _____________ ")
 print("    /  ______/|  /  ___   /|  /  ___   /|  /   __   /|  /  _    _    /|")
@@ -14,14 +9,19 @@ print(" /  /______|/ /  / _____|/ /  /\  \__|/ /  /__/  / / /  / /  / /  / /  ")
 print("/________/|  /__/ /       /__/ /\__/|  /________/ / /__/ /__/ /__/ /   ")
 print("|________|/  |__|/        |__|/ |__|/  |________|/  |__|/|__|/|__|/    ")
 print("\n")
-print("  Robson Couto 2016")
-print("  www.dragaosemchama.com.br")
+print("  Allan Gallop 2020")
+print("  www.M0VTE.co.uk")
+print("  https://github.com/AllanGallop/eprom\n")
+print("  Based on work by Robson Couto")
 print("  github.com/robsoncouto/eprom\n")
+
 
 #Default value, 1MB chip:
 romsize=1*1024*1024
 numsectors=int(romsize/128) # I am sending data in 128 byte chunks
-
+print("Enter COM port address (eg COM1, /dev/ttyACM0)")
+comport=str(input(":"))
+ser = serial.Serial(comport, 250000, timeout=0) #Serial Port
 
 while True:
 
@@ -29,7 +29,7 @@ while True:
     print("                                  ")
     print("          1-Read eprom            ")
     print("          2-burn eprom            ")
-    print("          3-about this script     ")
+    print("          3-wipe eprom            ")
     print("          4-blank check           ")
     print("          5-select chip size      ")
     print("          6-verify eprom          ")
@@ -81,35 +81,75 @@ while True:
 
             #Gets checksum from xoring the package
             for j in range(len(data)):
-                 CHK=CHK^data[j]
+                CHK=CHK^data[j]
+
             time.sleep(0.001)
             print("Writing data. Current porcentage:{:.2%}".format(i/numsectors),end='\r')
-            #print("CHK:", CHK)
+            print("CHK:", CHK)
             response=~CHK
 
             #keeps trying while the replied checksum is not correct
             while response!=CHK:
                 ser.write(data)
                 ser.write(struct.pack(">B",CHK&0xFF))
-                timeout=30
+                timeout=60
                 while ser.inWaiting()==0:
                     time.sleep(0.01)
                     timeout=timeout-1
                     if timeout==0:
                         print("could not get a response, please start again\n")
                         break
-                response=ord(ser.read(1))
-                if response!=CHK:
-                    print("wrong checksum, sending chunk again\n")
+                CHKBCK = ser.read(1)
+                
+                if(len(CHKBCK) > 0):
+                    response=ord(CHKBCK)
+                    if response!=CHK:
+                        print("wrong checksum, sending chunk again\n")
         f.close()
 
     #Just some info
     if(option==3):
+        print("Writing zero's to EPROM")
+        for i in range(numsectors):
+            ser.write(b"\x55")
+            ser.write(bytes("w","ASCII" ))
+            time.sleep(0.001)
+            #send address of the block first
+            ser.write(struct.pack(">B",i>>8))
+            CHK=i>>8
+            time.sleep(0.001)
+            ser.write(struct.pack(">B",i&0xFF))
+            CHK^=i&0xFF
+            time.sleep(0.001)
+            data=bytearray(128)
 
-        print("\nA more detailed write up about this project is available at www.dragaosemchama.com.br")
-        print("This script goes together with a Arduino sketch, both are used to read and program")
-        print("eproms on the cheap.")
-        print("Written by Robson Couto\n")
+            for j in range(len(data)):
+                CHK=CHK^data[j]
+
+            time.sleep(0.001)
+            print("Writing data. Current porcentage:{:.2%}".format(i/numsectors),end='\r')
+            print("CHK:", CHK)
+            response=~CHK
+
+            #keeps trying while the replied checksum is not correct
+            while response!=CHK:
+                ser.write(data)
+                ser.write(struct.pack(">B",CHK&0xFF))
+                timeout=60
+                while ser.inWaiting()==0:
+                    time.sleep(0.01)
+                    timeout=timeout-1
+                    if timeout==0:
+                        print("could not get a response, please start again\n")
+                        break
+                CHKBCK = ser.read(1)
+                
+                if(len(CHKBCK) > 0):
+                    response=ord(CHKBCK)
+                    if response!=CHK:
+                        print("wrong checksum, sending chunk again\n")
+        f.close()
+
     #Blank check
     if(option==4):
         #same as reading

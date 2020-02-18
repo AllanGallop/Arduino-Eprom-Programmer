@@ -1,3 +1,0 @@
-add timeouts
-add checksum to download
-add check blank
