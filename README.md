@@ -1,5 +1,6 @@
 # AT27Cxxx EPROM Burner
-> For reading and writing parallel eproms
+> Reading and writing parallel eproms using an Arduino Mega 2650
+> <a href="https://m0vte.co.uk/blog/playing-with-eproms">https://m0vte.co.uk/blog/playing-with-eproms</a>
 
 ## Prerequisites
 * Python 3 [https://www.python.org/]
