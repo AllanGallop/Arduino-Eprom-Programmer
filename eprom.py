@@ -85,7 +85,7 @@ while True:
 
             time.sleep(0.001)
             print("Writing data. Current porcentage:{:.2%}".format(i/numsectors),end='\r')
-            print("CHK:", CHK)
+            print("CHK:", ~CHK)
             response=~CHK
 
             #keeps trying while the replied checksum is not correct
